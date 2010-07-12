@@ -1,0 +1,7 @@
+target
+camel-cassandra.ipr
+camel-cassandra.iws
+camel-cassandra.iml
+.project
+.classpath
+*.patch
