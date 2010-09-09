@@ -267,16 +267,16 @@ class ConsumerTestRouteBuilder(val fr: String, val to: String) extends RouteBuil
 
 object ConsumerSuite {
   val fromPollKeyspaceColumnFamilyColumm = "cassandra:/camel-cassandra/stringCols/column1?cassandraPollingMaxMessages=3"
-  val toPollKeyspaceColumnFamilyColumn = "seda:pollKeyspaceColumnFamilyColumn"
+  val toPollKeyspaceColumnFamilyColumn = "direct:pollKeyspaceColumnFamilyColumn"
   val fromPollKeyspaceColumnFamilyKey = "cassandra:/camel-cassandra/stringCols/~key1?cassandraPollingMaxMessages=3"
-  val toPollKeyspaceColumnFamilyKey = "seda:pollKeyspaceColumnFamilyKey"
+  val toPollKeyspaceColumnFamilyKey = "direct:pollKeyspaceColumnFamilyKey"
   val fromPollKeyspaceColumnFamilySuperColumnAndColumn = "cassandra:/camel-cassandra/superStringCols/!supercolumn1/column1?cassandraPollingMaxMessages=3"
-  val toPollKeyspaceColumnFamilySuperColumnAndColumn = "seda:PollKeyspaceColumnFamilySuperColumnAndColumn"
+  val toPollKeyspaceColumnFamilySuperColumnAndColumn = "direct:PollKeyspaceColumnFamilySuperColumnAndColumn"
   val fromPollKeyspaceColumnFamilySuperColumnAndKey = "cassandra:/camel-cassandra/superStringCols/~key1/!supercolumn1?cassandraPollingMaxMessages=3"
-  val toPollKeyspaceColumnFamilySuperColumnAndKey = "seda:PollKeyspaceColumnFamilySuperColumnAndKey"
+  val toPollKeyspaceColumnFamilySuperColumnAndKey = "direct:PollKeyspaceColumnFamilySuperColumnAndKey"
   val fromPollKeyspaceColumnFamilySuperColumn = "cassandra:/camel-cassandra/superStringCols/!supercolumn1?cassandraPollingMaxMessages=3"
-  val toPollKeyspaceColumnFamilySuperColumn = "seda:PollKeyspaceColumnFamilySuperColumn"
+  val toPollKeyspaceColumnFamilySuperColumn = "direct:PollKeyspaceColumnFamilySuperColumn"
   val fromPollKeyspaceColumnFamily = "cassandra:/camel-cassandra/stringCols?cassandraPollingMaxMessages=3"
-  val toPollKeyspaceColumnFamily = "seda:PollKeyspaceColumnFamily"
+  val toPollKeyspaceColumnFamily = "direct:PollKeyspaceColumnFamily"
 
 }

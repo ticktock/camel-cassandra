@@ -1,7 +1,7 @@
 package org.apache.camel.component.cassandra
 
 import java.net.URI
-import collection.jcl.MapWrapper
+import collection.JavaConversions._
 import org.apache.camel.component.cassandra.CassandraComponent._
 import org.apache.camel.{Expression, CamelContext, Producer, Processor}
 import org.apache.camel.spi.DataFormat
@@ -15,7 +15,7 @@ import grizzled.slf4j.Logger
 /**
  */
 
-class CassandraEndpoint(val uri: String, val context: CamelContext, val pool: SessionPool, val consistency: ConsistencyLevel, val options: MapWrapper[java.lang.String, java.lang.String]) extends DefaultPollingEndpoint(uri, context) {
+class CassandraEndpoint(val uri: String, val context: CamelContext, val pool: SessionPool, val consistency: ConsistencyLevel, val options: java.util.Map[java.lang.String, java.lang.String]) extends DefaultPollingEndpoint(uri, context) {
   private val logger: Logger = Logger(classOf[CassandraEndpoint])
   var keyspaceExtractor: Option[Expression] = None
   var columnFamilyExtractor: Option[Expression] = None
@@ -43,9 +43,9 @@ class CassandraEndpoint(val uri: String, val context: CamelContext, val pool: Se
   private def parseUri(): Unit = {
     val endpointUri = new URI(uri)
     var path = endpointUri.getPath
-    var paths = Nil.elements.asInstanceOf[Iterator[java.lang.String]]
+    var paths = Nil.iterator.asInstanceOf[Iterator[java.lang.String]]
     if (path != null && path != "/") {
-      paths = path.substring(1).split("/").elements
+      paths = path.substring(1).split("/").iterator
     }
     if (paths.hasNext) keyspace = Some(paths.next)
     if (paths.hasNext) columnFamily = Some(paths.next)
@@ -127,7 +127,7 @@ class CassandraEndpoint(val uri: String, val context: CamelContext, val pool: Se
 
 
   private def lookupOptionBean[T <: Any](key: String, clazz: Class[T]): Option[T] = {
-    var optionBeanName: Option[String] = options.removeKey(key);
+    var optionBeanName: Option[String] = asMap(options).remove(key);
     var beanName = optionBeanName match {
     //the default bean name is the option name itself
       case None => key
@@ -143,11 +143,11 @@ class CassandraEndpoint(val uri: String, val context: CamelContext, val pool: Se
   }
 
   private def lookupPollingOptions(): Unit = {
-    options.removeKey(cassandraPollingMaxMessagesOption) match {
+    asMap(options).remove(cassandraPollingMaxMessagesOption) match {
       case Some(max) => pollingMaxMessagesPerPoll = max.toInt
       case _ => None
     }
-    options.removeKey(cassandraPollingMaxKeyRangeOption) match {
+    asMap(options).remove(cassandraPollingMaxKeyRangeOption) match {
       case Some(max) => pollingMaxKeyRange = max.toInt
       case _ => None
     }

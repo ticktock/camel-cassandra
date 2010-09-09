@@ -4,7 +4,7 @@ import org.apache.cassandra.thrift.Cassandra.Client
 import java.lang.String
 import reflect.BeanProperty
 import org.apache.cassandra.thrift._
-import collection.jcl.Conversions._
+import collection.JavaConversions._
 import com.shorrockin.cascal.utils.Conversions._
 import org.apache.camel.component.cassandra.CassandraComponent._
 import org.apache.camel.{ExchangePattern, Exchange}

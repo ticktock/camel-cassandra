@@ -10,10 +10,11 @@ import collection.mutable.HashMap
 import java.util.Map
 import org.apache.camel._
 import java.net.URI
-import collection.jcl.Conversions._
+import collection.JavaConversions._
 import grizzled.slf4j.Logger
-import collection.jcl.MapWrapper
+
 import org.apache.camel.component.cassandra.CassandraComponent._
+
 
 class CassandraComponent(context: CamelContext) extends DefaultComponent(context) {
   def this() = {
@@ -28,7 +29,7 @@ class CassandraComponent(context: CamelContext) extends DefaultComponent(context
   @BeanProperty var cassandraTimeout: Int = 3000
   @BeanProperty var consistencyLevel: ConsistencyLevel = ConsistencyLevel.QUORUM
 
-  var poolMap = new HashMap[Tuple4[String, int, int, ConsistencyLevel], SessionPool]
+  var poolMap = new HashMap[Tuple4[String, Int, Int, ConsistencyLevel], SessionPool]
 
 
   override def doStart = {
@@ -57,9 +58,7 @@ class CassandraComponent(context: CamelContext) extends DefaultComponent(context
 
 
   override def doStop = {
-    poolMap.values.foreach {
-      pool => pool.close
-    }
+    poolMap.values.foreach {_.close}
   }
 
 
@@ -72,24 +71,24 @@ class CassandraComponent(context: CamelContext) extends DefaultComponent(context
     }
 
 
-    val options = convertMap(opts)
+
     val uri = new URI(uriStr)
     var host = uri.getHost
     if (host == null) host = cassandraHost
     var port = uri.getPort
     if (port == -1) port = cassandraPort
 
-    val timeout = options.removeKey(timeoutOption) match {
+    val timeout = asMap(opts).remove(timeoutOption) match {
       case Some(str) => str.asInstanceOf[String].toInt
       case None => cassandraTimeout
     }
-    val consistency = options.removeKey(consistencyOption) match {
+    val consistency = asMap(opts).remove(consistencyOption) match {
       case Some(lvl) => ConsistencyLevel.valueOf(lvl.asInstanceOf[String])
       case None => consistencyLevel
     }
     val pool = getPool(host, port, timeout, consistency)
 
-    return new CassandraEndpoint(uriStr, getCamelContext, pool, consistency, options.asInstanceOf[MapWrapper[String, String]])
+    return new CassandraEndpoint(uriStr, getCamelContext, pool, consistency, opts.asInstanceOf[Map[String,String]])
   }
 }
 

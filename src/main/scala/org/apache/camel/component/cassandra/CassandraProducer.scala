@@ -13,6 +13,8 @@ import org.apache.camel.spi.DataFormat
 import java.util.{UUID, Date}
 import java.io.{OutputStream, ByteArrayOutputStream}
 import reflect.BeanProperty
+import collection.JavaConversions._
+import com.shorrockin.cascal.model.Keyspace
 
 /**
  *
@@ -21,17 +23,17 @@ import reflect.BeanProperty
 class CassandraProducer(val endpoint: CassandraEndpoint) extends DefaultProducer(endpoint) {
   private val logger: Logger = Logger(classOf[CassandraProducer])
   @BeanProperty
-  private var keyspaceExtractor = defaultKeyspaceExtractor
+  var keyspaceExtractor = defaultKeyspaceExtractor
   @BeanProperty
-  private var columnFamilyExtractor = defaultColumnFamilyExtractor
+  var columnFamilyExtractor = defaultColumnFamilyExtractor
   @BeanProperty
-  private var superColumnExtractor = defaultSuperColumnExtractor
+  var superColumnExtractor = defaultSuperColumnExtractor
   @BeanProperty
-  private var columnExtractor = defaultColumnExtractor
+  var columnExtractor = defaultColumnExtractor
   @BeanProperty
-  private var keyExtractor = defaultKeyExtractor
+  var keyExtractor = defaultKeyExtractor
   @BeanProperty
-  private var valueExtractor = defaultValueExtractor
+  var valueExtractor = defaultValueExtractor
   overrideDefaultExtractors();
 
 
@@ -81,12 +83,12 @@ class CassandraProducer(val endpoint: CassandraEndpoint) extends DefaultProducer
         supercolumn match {
           case Some(sc) => {
             log.debug("Inserting sueprcolumn keyspace:%s columnFamily:%s key:%s supercolumn:%s column:%s".format(keyspace, columnfamily, key, sc, column))
-            session.insert(keyspace \\ columnfamily \ key \ sc \ (column, value))
+            session.insert(Keyspace(keyspace) \\ columnfamily \ key \ sc \ (column, value))
             out.setHeader(superColumnHeader, sc)
           }
           case None => {
             log.debug("Inserting standard column keyspace:%s columnFamily:%s key:%s column:%s".format(keyspace, columnfamily, key, column))
-            session.insert(keyspace \ columnfamily \ key \ (column, value))
+            session.insert(Keyspace(keyspace) \ columnfamily \ key \ (column, value))
           }
         }
 
