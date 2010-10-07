@@ -2,41 +2,31 @@ package org.apache.camel.component.cassandra
 
 import org.scalatest.matchers.ShouldMatchers
 import java.lang.String
-import collection.immutable.Map
-import org.scalatest.{BeforeAndAfterEach, FunSuite, BeforeAndAfterAll}
+import org.scalatest.FunSuite
 import org.apache.camel.scala.dsl.builder.RouteBuilder
-import collection.jcl.HashMap
-import java.util.{Set => JSet}
-import org.apache.camel.component.cassandra.CassandraProducer._
-import collection.jcl.Conversions._
+import java.util.{Set => JSet, HashMap => JMap}
 import org.apache.camel.{Message, Exchange, ExchangePattern, CamelContext}
-import org.apache.camel.scala.RichExchange
 import org.apache.camel.component.cassandra.ProducerSuite._
 import org.apache.camel.component.cassandra.CassandraComponent._
-import com.shorrockin.cascal.session._
 import com.shorrockin.cascal.utils.Conversions._
 import org.apache.camel.builder.ExpressionBuilder
 import org.springframework.context.support.ClassPathXmlApplicationContext
 import org.apache.camel.impl._
 import java.util.Collections
 import java.io.ByteArrayInputStream
-import com.shorrockin.cascal.testing.{CassandraTestPool, EmbeddedTestCassandra}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-
+import collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
 class ProducerSuite extends FunSuite with CassandraSuite with ShouldMatchers {
-  
-
-
   test("sending to an endpoint with keyspace columnfamily and column results in an insert to cassandra") {
     var context = new DefaultCamelContext
     context.addRoutes(new ProducerTestRouteBuilder)
     context.start
 
-    var headers = new HashMap[String, java.lang.Object]
-    headers += keyHeader -> "theKey"
+    var headers = new JMap[String, java.lang.Object]
+    asMap(headers) += keyHeader -> "theKey"
     var body = "TEST123"
     var exchange: Exchange = new DefaultExchange(context)
     exchange.getIn.setHeaders(headers)
@@ -74,8 +64,8 @@ class ProducerSuite extends FunSuite with CassandraSuite with ShouldMatchers {
     context.addRoutes(new ProducerTestRouteBuilder)
     context.start
 
-    var headers = new HashMap[String, java.lang.Object]
-    headers += keyHeader -> "theFormatKey"
+    var headers = new JMap[String, java.lang.Object]
+    asMap(headers) += keyHeader -> "theFormatKey"
     var body = Collections.singleton("TEST123")
     var exchange: Exchange = new DefaultExchange(context)
     exchange.getIn.setHeaders(headers)
@@ -114,8 +104,8 @@ class ProducerSuite extends FunSuite with CassandraSuite with ShouldMatchers {
     context.addRoutes(new ProducerTestRouteBuilder)
     context.start
 
-    var headers = new HashMap[String, java.lang.Object]
-    headers += keyHeader -> "theSupercolKey"
+    var headers = new JMap[String, java.lang.Object]
+    asMap(headers) += keyHeader -> "theSupercolKey"
     var body = "TEST123"
     var exchange: Exchange = new DefaultExchange(context)
     exchange.getIn.setHeaders(headers)
@@ -149,8 +139,8 @@ class ProducerSuite extends FunSuite with CassandraSuite with ShouldMatchers {
     context.addRoutes(new ProducerTestRouteBuilder)
     context.start
 
-    var headers = new HashMap[String, java.lang.Object]
-    headers += columnHeader -> "testcolumn"
+    var headers = new JMap[String, java.lang.Object]
+    asMap(headers) += columnHeader -> "testcolumn"
     var body = "TEST123"
     var exchange: Exchange = new DefaultExchange(context)
     exchange.getIn.setHeaders(headers)
@@ -195,8 +185,8 @@ class ProducerSuite extends FunSuite with CassandraSuite with ShouldMatchers {
 
     context.addRoutes(new ProducerTestRouteBuilder)
     context.start
-    var headers = new HashMap[String, java.lang.Object]
-    headers += keyHeader -> "theExtractorKey"
+    var headers = new JMap[String, java.lang.Object]
+    asMap(headers) += keyHeader -> "theExtractorKey"
     var body = "TEST123"
     var exchange: Exchange = new DefaultExchange(context)
     exchange.getIn.setHeaders(headers)
@@ -241,8 +231,8 @@ class ProducerSuite extends FunSuite with CassandraSuite with ShouldMatchers {
 
     context.addRoutes(new ProducerTestRouteBuilder)
     context.start
-    var headers = new HashMap[String, java.lang.Object]
-    headers += keyHeader -> "theSuperExtractorKey"
+    var headers = new JMap[String, java.lang.Object]
+    asMap(headers) += keyHeader -> "theSuperExtractorKey"
     var body = "TEST123"
     var exchange: Exchange = new DefaultExchange(context)
     exchange.getIn.setHeaders(headers)
@@ -274,10 +264,10 @@ class ProducerSuite extends FunSuite with CassandraSuite with ShouldMatchers {
   test("loading routes and extractors via spring and specifying extractor beans with options and sending to an endpoint results in an insert to cassandra") {
     var spring = new ClassPathXmlApplicationContext("classpath:producer-suite-context-1.xml")
     var context = spring.getBean("camel").asInstanceOf[CamelContext]
-    var headers = new HashMap[String, java.lang.Object]
-    headers += keyHeader -> "theSpringKey"
-    headers += columnFamilyHeader -> "stringCols"
-    headers += columnHeader -> "testcolumn"
+    var headers = new JMap[String, java.lang.Object]
+    asMap(headers) += keyHeader -> "theSpringKey"
+    asMap(headers) += columnFamilyHeader -> "stringCols"
+    asMap(headers) += columnHeader -> "testcolumn"
     var body = "TEST123"
     var exchange: Exchange = new DefaultExchange(context)
     exchange.getIn.setHeaders(headers)
@@ -309,10 +299,10 @@ class ProducerSuite extends FunSuite with CassandraSuite with ShouldMatchers {
   test("loading routes and extractors via spring using default extractor bean names instead of options and sending to an endpoint results in an insert to cassandra") {
     var spring = new ClassPathXmlApplicationContext("classpath:producer-suite-context-2.xml")
     var context = spring.getBean("camel").asInstanceOf[CamelContext]
-    var headers = new HashMap[String, java.lang.Object]
-    headers += keyHeader -> "theSpringDefaultKey"
-    headers += columnFamilyHeader -> "stringCols"
-    headers += columnHeader -> "testcolumn"
+    var headers = new JMap[String, java.lang.Object]
+    asMap(headers) += keyHeader -> "theSpringDefaultKey"
+    asMap(headers) += columnFamilyHeader -> "stringCols"
+    asMap(headers) += columnHeader -> "testcolumn"
     var body = "TEST123"
     var exchange: Exchange = new DefaultExchange(context)
     exchange.getIn.setHeaders(headers)
