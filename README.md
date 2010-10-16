@@ -143,6 +143,7 @@ Here are some example URIs, which would apply default extractors to get the nece
     <tr><td>cassandraPollingStrategy</td><td>None</td><td>If you specify an instance of CassndraPollingStrategy, it will be executes with StrategyBasedCassandraPolling</td></tr>
     <tr><td>cassandraPollingMaxMessages</td><td>1000</td><td>The maximum mesages to return per poll</td></tr>
     <tr><td>cassandraPollingMaxKeyRange</td><td>1000</td><td>The maximum mesages to specify in the KeyRange used to call get_range_slices during polling. See Note below.</td></tr>
+    <tr><td>batchCreator</td><td>instance of org.apache.camel.component.cassandra.DefaultBatchCreator</td><td>If the incoming exchange can be broken down into multiple inserts, you can specify an implementation of BatchCreator to create a List of Exchanges that will be inserted in batch</td></tr>
 </table>
 
 ###A Note about the Default Polling implementation (before Cassandra 0.7)

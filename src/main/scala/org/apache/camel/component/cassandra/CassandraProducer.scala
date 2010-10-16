@@ -15,6 +15,7 @@ import java.io.{OutputStream, ByteArrayOutputStream}
 import reflect.BeanProperty
 import collection.JavaConversions._
 import com.shorrockin.cascal.model.Keyspace
+import collection.JavaConversions
 
 /**
  *
@@ -36,69 +37,86 @@ class CassandraProducer(val endpoint: CassandraEndpoint) extends DefaultProducer
   var valueExtractor = defaultValueExtractor
   overrideDefaultExtractors();
 
-
-
   def process(exchange: Exchange): Unit = {
+    val exchanges = endpoint.batchCreator.get.createBatch(exchange)
     endpoint.withSession {
       session =>
-        var keyspace: String = endpoint.keyspace.getOrElse(keyspaceExtractor.evaluate(exchange, classOf[String]))
-        var columnfamily: String = endpoint.columnFamily.getOrElse(columnFamilyExtractor.evaluate(exchange, classOf[String]))
-        var supercolumn: Option[String] = endpoint.superColumn match {
-          case Some(sc) => Some(sc)
-          case None => {
-            superColumnExtractor.evaluate(exchange, classOf[String]) match {
-              case null => None
-              case str => Some(str)
-            }
-          }
+        val inserts = JavaConversions.asList(exchanges).map {
+          createInsertAndSetOutFor(_)
         }
-        var column: String = endpoint.column.getOrElse(columnExtractor.evaluate(exchange, classOf[String]))
-        var key = endpoint.key.getOrElse(keyExtractor.evaluate(exchange, classOf[String]))
-        var valueExtract: Any = valueExtractor.evaluate(exchange, classOf[Any])
-        var value: Array[Byte] = new Array[Byte](0)
-
-        endpoint.dataFormat match {
-          case Some(format: DataFormat) => {
-            val buffer = new ByteArrayOutputStream
-            format.marshal(exchange, valueExtract, buffer)
-            value = buffer.toByteArray
-          }
-          case None => {
-            if (valueExtract.isInstanceOf[String]) value = bytes(valueExtract.asInstanceOf[String])
-            else if (valueExtract.isInstanceOf[Array[Byte]]) value = valueExtract.asInstanceOf[Array[Byte]]
-            else if (valueExtract.isInstanceOf[Long]) value = bytes(valueExtract.asInstanceOf[Long])
-            else if (valueExtract.isInstanceOf[Date]) value = bytes(valueExtract.asInstanceOf[Date])
-            else if (valueExtract.isInstanceOf[Float]) value = bytes(valueExtract.asInstanceOf[Float])
-            else if (valueExtract.isInstanceOf[Double]) value = bytes(valueExtract.asInstanceOf[Double])
-            else if (valueExtract.isInstanceOf[Int]) value = bytes(valueExtract.asInstanceOf[Int])
-            else if (valueExtract.isInstanceOf[UUID]) value = bytes(valueExtract.asInstanceOf[UUID])
-            //Else try to convert to byte[] with the valueExtractor, will throw NoSupportedConversion in worst case
-            else value = valueExtractor.evaluate(exchange, classOf[Array[Byte]])
-          }
-        }
-
-
-        val out: Message = exchange.getOut
-
-        supercolumn match {
-          case Some(sc) => {
-            log.debug("Inserting sueprcolumn keyspace:%s columnFamily:%s key:%s supercolumn:%s column:%s".format(keyspace, columnfamily, key, sc, column))
-            session.insert(Keyspace(keyspace) \\ columnfamily \ key \ sc \ (column, value))
-            out.setHeader(superColumnHeader, sc)
-          }
-          case None => {
-            log.debug("Inserting standard column keyspace:%s columnFamily:%s key:%s column:%s".format(keyspace, columnfamily, key, column))
-            session.insert(Keyspace(keyspace) \ columnfamily \ key \ (column, value))
-          }
-        }
-
-        out.setHeader(keyspaceHeader, keyspace)
-        out.setHeader(columnFamilyHeader, columnfamily)
-        out.setHeader(columnHeader, column)
-        out.setHeader(keyHeader, key)
-        out.setBody(value)
+        session.batch(inserts)
     }
+
+    if(exchanges.size == 1 && exchanges.get(0).equals(exchange)){
+      //leave it alone
+    } else {
+      exchange.getOut.setBody(exchanges)
+      exchange.getOut.setHeader(batchSizeHeader, exchanges.size)
+    }
+    
   }
+
+  def createInsertAndSetOutFor(exchange: Exchange): Insert = {
+
+    var keyspace: String = endpoint.keyspace.getOrElse(keyspaceExtractor.evaluate(exchange, classOf[String]))
+    var columnfamily: String = endpoint.columnFamily.getOrElse(columnFamilyExtractor.evaluate(exchange, classOf[String]))
+    var supercolumn: Option[String] = endpoint.superColumn match {
+      case Some(sc) => Some(sc)
+      case None => {
+        superColumnExtractor.evaluate(exchange, classOf[String]) match {
+          case null => None
+          case str => Some(str)
+        }
+      }
+    }
+    var column: String = endpoint.column.getOrElse(columnExtractor.evaluate(exchange, classOf[String]))
+    var key = endpoint.key.getOrElse(keyExtractor.evaluate(exchange, classOf[String]))
+    var valueExtract: Any = valueExtractor.evaluate(exchange, classOf[Any])
+    var value: Array[Byte] = new Array[Byte](0)
+
+    endpoint.dataFormat match {
+      case Some(format: DataFormat) => {
+        val buffer = new ByteArrayOutputStream
+        format.marshal(exchange, valueExtract, buffer)
+        value = buffer.toByteArray
+      }
+      case None => {
+        if (valueExtract.isInstanceOf[String]) value = bytes(valueExtract.asInstanceOf[String])
+        else if (valueExtract.isInstanceOf[Array[Byte]]) value = valueExtract.asInstanceOf[Array[Byte]]
+        else if (valueExtract.isInstanceOf[Long]) value = bytes(valueExtract.asInstanceOf[Long])
+        else if (valueExtract.isInstanceOf[Date]) value = bytes(valueExtract.asInstanceOf[Date])
+        else if (valueExtract.isInstanceOf[Float]) value = bytes(valueExtract.asInstanceOf[Float])
+        else if (valueExtract.isInstanceOf[Double]) value = bytes(valueExtract.asInstanceOf[Double])
+        else if (valueExtract.isInstanceOf[Int]) value = bytes(valueExtract.asInstanceOf[Int])
+        else if (valueExtract.isInstanceOf[UUID]) value = bytes(valueExtract.asInstanceOf[UUID])
+        //Else try to convert to byte[] with the valueExtractor, will throw NoSupportedConversion in worst case
+        else value = valueExtractor.evaluate(exchange, classOf[Array[Byte]])
+      }
+    }
+
+
+    val out: Message = exchange.getOut
+    var insert:Insert = null
+    supercolumn match {
+      case Some(sc) => {
+        log.debug("Inserting sueprcolumn keyspace:%s columnFamily:%s key:%s supercolumn:%s column:%s".format(keyspace, columnfamily, key, sc, column))
+        insert = Insert(Keyspace(keyspace) \\ columnfamily \ key \ sc \ (column, value))
+        out.setHeader(superColumnHeader, sc)
+      }
+      case None => {
+        log.debug("Inserting standard column keyspace:%s columnFamily:%s key:%s column:%s".format(keyspace, columnfamily, key, column))
+        insert = Insert(Keyspace(keyspace) \ columnfamily \ key \ (column, value))
+      }
+    }
+
+    out.setHeader(keyspaceHeader, keyspace)
+    out.setHeader(columnFamilyHeader, columnfamily)
+    out.setHeader(columnHeader, column)
+    out.setHeader(keyHeader, key)
+    out.setBody(value)
+    insert
+  }
+
 
   private def overrideDefaultExtractors(): Unit = {
     endpoint.keyspaceExtractor match {

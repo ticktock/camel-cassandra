@@ -33,11 +33,14 @@ class CassandraEndpoint(val uri: String, val context: CamelContext, val pool: Se
   var pollingStrategy: Option[CassandraPollingStrategy] = None
   var pollingMaxMessagesPerPoll: Int = 1000
   var pollingMaxKeyRange: Int = 1000
+  var batchCreator: Option[BatchCreator] = None
 
   parseUri
   lookupExtractors
   lookupDataFormat
   lookupPollingOptions
+  lookupBatchCreator
+
 
 
   private def parseUri(): Unit = {
@@ -154,6 +157,13 @@ class CassandraEndpoint(val uri: String, val context: CamelContext, val pool: Se
     pollingImpl = lookupOptionBean(cassandraPollingOption, classOf[CassandraPolling])
     pollingStrategy = lookupOptionBean(cassandraPollingStrategyOption, classOf[CassandraPollingStrategy])
 
+  }
+
+  private def lookupBatchCreator():Unit={
+    batchCreator = lookupOptionBean(batchCreatorOption, classOf[BatchCreator]) match {
+      case None => Some(new DefaultBatchCreator)
+      case Some(creator) => Some(creator)
+    }
   }
 
   override def createEndpointUri = uri

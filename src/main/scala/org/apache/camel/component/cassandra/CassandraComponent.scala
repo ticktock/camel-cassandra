@@ -102,6 +102,7 @@ object CassandraComponent {
   val keyExtractorOption = "keyExtractor"
   val valueExtractorOption = "valueExtractor"
   val dataFormatOption = "cassandraDataFormat"
+  val batchCreatorOption = "batchCreator"
   val cassandraPollingOption = "cassandraPollingImpl"
   val cassandraPollingStrategyOption = "cassandraPollingStrategy"
   val cassandraPollingMaxMessagesOption = "cassandraPollingMaxMessages"
@@ -111,6 +112,8 @@ object CassandraComponent {
   val columnHeader = "camel-cassandra-column"
   val superColumnHeader = "camel-cassandra-supercolumn"
   val keyHeader = "camel-cassandra-key"
+  val batchSizeHeader = "camel-casandra-batch-size"
+  
 }
 
 
