@@ -121,7 +121,7 @@ class ProducerSuite extends FunSuite with CassandraSuite with ShouldMatchers {
     out.getHeader(columnFamilyHeader, classOf[String]) should be("superStringCols")
     out.getHeader(columnHeader, classOf[String]) should be("testcolumn")
     out.getHeader(keyHeader, classOf[String]) should be("theSupercolKey")
-    out.getHeader(superColumnHeader) should be("superduper")
+    out.getHeader(superColumnHeader, classOf[String]) should be("superduper")
     out.getBody(classOf[String]) should be("TEST123")
 
     withSession {
@@ -156,7 +156,7 @@ class ProducerSuite extends FunSuite with CassandraSuite with ShouldMatchers {
     out.getHeader(columnFamilyHeader, classOf[String]) should be("superStringCols")
     out.getHeader(columnHeader, classOf[String]) should be("testcolumn")
     out.getHeader(keyHeader, classOf[String]) should be("testUrlKey")
-    out.getHeader(superColumnHeader) should be("superduper")
+    out.getHeader(superColumnHeader, classOf[String]) should be("superduper")
     out.getBody(classOf[String]) should be("TEST123")
 
     withSession {
@@ -248,7 +248,7 @@ class ProducerSuite extends FunSuite with CassandraSuite with ShouldMatchers {
     out.getHeader(columnFamilyHeader, classOf[String]) should be("superStringCols")
     out.getHeader(columnHeader, classOf[String]) should be("testcolumn")
     out.getHeader(keyHeader, classOf[String]) should be("theSuperExtractorKey")
-    out.getHeader(superColumnHeader) should be("superduper")
+    out.getHeader(superColumnHeader,classOf[String]) should be("superduper")
     out.getBody(classOf[String]) should be("TEST123")
 
     withSession {
